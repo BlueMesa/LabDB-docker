@@ -1,0 +1,36 @@
+version: '2'
+services:
+  web:
+    image: nginx:latest
+    links:
+      - php
+    ports:
+      - "${PORT}:80"
+    volumes_from:
+      - php
+    volumes:
+      - ./labdb.conf:/etc/nginx/conf.d/default.conf
+  php:
+    build: php-fpm
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${MYSQL_USER}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - DB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - CACHE_HOST=redis
+      - PRINT_HOST=${PRINT_HOST}
+      - PRINT_QUEUE=${PRINT_QUEUE}
+    links:
+      - db
+      - redis
+    volumes:
+      - ./webapp:/var/www
+  db:
+    image: mariadb:10.4
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ./mysql:/var/lib/mysql
+  redis:
+    image: redis:5
